@@ -124,9 +124,6 @@ var ReactTags = _react2.default.createClass({
     this.setState({ query: "" });
   },
   handleChange: function handleChange(e) {
-    if (this.props.handleInputChange) {
-      this.props.handleInputChange(e.target.value.trim());
-    }
 
     var query = e.target.value.trim();
     var suggestions = this.filteredSuggestions(query, this.props.suggestions);
@@ -146,6 +143,17 @@ var ReactTags = _react2.default.createClass({
     if (this.props.handleInputBlur && value.length) {
       this.props.handleInputBlur(value);
       this.refs.input.value = "";
+    }
+  },
+  handleKeyPress:function handleKeyPress(e){
+    if (this.props.handleInputChange){
+      if(!this.props.handleInputChange(e.target.value.trim()+String.fromCharCode(e.which))){
+        e.preventDefault();
+        e.stopPropagation();
+        //remove last type charecter
+        return;
+      }else{
+      }
     }
   },
   handleKeyDown: function handleKeyDown(e) {
@@ -213,6 +221,7 @@ var ReactTags = _react2.default.createClass({
         selectionMode: true
       });
     }
+
   },
   handlePaste: function handlePaste(e) {
     var _this = this;
@@ -238,18 +247,21 @@ var ReactTags = _react2.default.createClass({
     }
 
     // call method to add
-    this.props.handleAddition(tag);
+    if(this.props.handleAddition(tag)){
+      // reset the state
+      this.setState({
+        query: "",
+        selectionMode: false,
+        selectedIndex: -1
+      });
 
-    // reset the state
-    this.setState({
-      query: "",
-      selectionMode: false,
-      selectedIndex: -1
-    });
+      // focus back on the input box
+      input.value = "";
+      input.focus();
 
-    // focus back on the input box
-    input.value = "";
-    input.focus();
+    }else{
+      return;
+    }
   },
   handleSuggestionClick: function handleSuggestionClick(i, e) {
     this.addTag(this.state.suggestions[i]);
@@ -307,6 +319,7 @@ var ReactTags = _react2.default.createClass({
         onBlur: this.handleBlur,
         onChange: this.handleChange,
         onKeyDown: this.handleKeyDown,
+        onKeyPress:this.handleKeyPress,
         onPaste: this.handlePaste }),
       _react2.default.createElement(_Suggestions2.default, { query: query,
         suggestions: suggestions,
